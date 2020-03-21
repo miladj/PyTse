@@ -1,7 +1,9 @@
-<p style="direction:rtl">
- اطلاعات نمادها در  http://www.tsetmc.com
-</p>
+دریافت اطلاعات سایت
+http://www.tsetmc.com
 
+```
+pip install pytse
+```
 
 This is a http://www.tsetmc.com data crawler.
 
@@ -21,11 +23,9 @@ You can refresh data by calling read_symbols
 ```python
 pytse.read_symbols()
 ```
-|||
 |--- |--- |
 |فیلد|توضیح|
 |(l18)|نماد|
-|||
 |(l30)|نام|
 |(tno)|تعداد معاملات|
 |(tvol)|حجم معاملات|

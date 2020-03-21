@@ -23,9 +23,11 @@ You can refresh data by calling read_symbols
 ```python
 pytse.read_symbols()
 ```
+|||
 |--- |--- |
 |فیلد|توضیح|
 |(l18)|نماد|
+|||
 |(l30)|نام|
 |(tno)|تعداد معاملات|
 |(tvol)|حجم معاملات|

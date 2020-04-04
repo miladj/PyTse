@@ -1,37 +1,5 @@
 import requests as rq
-from pytse.constants import BASE_URL
-
-# array_map=('tsid','isin','symbol',"companyname","heven","firstprice","closingprice","lastprice","tradecount","tradevolume","tradevalue","lowprice","highprice","yesterdayprice","eps","basevolume","visitcount","flow","cs","highthreshold","lowthreshold","sharecount","yval")
-# for index,i in enumerate(array_map):
-#     print(f"array_map[{index}]=\"{i}\"")
-
-# array_map = [""]*23
-# array_map[0] = "inscode"
-# array_map[1] = "iid"
-# array_map[2] = "l18"
-# array_map[3] = "l30"
-# array_map[4] = "heven"
-# array_map[5] = "pf"
-# array_map[6] = "pc"
-# array_map[7] = "pl"
-# array_map[8] = "tno"
-# array_map[9] = "tvol"
-# array_map[10] = "tval"
-# array_map[11] = "pmin"
-# array_map[12] = "pmax"
-# array_map[13] = "py"
-# array_map[14] = "eps"
-# array_map[15] = "bvol"
-# array_map[16] = "visitcount"
-# array_map[17] = "flow"
-# array_map[18] = "cs"
-# array_map[19] = "tmax"
-# array_map[20] = "tmin"
-# array_map[21] = "z"
-# array_map[22] = "yval"
-
-# # for index,i in enumerate(array_map):
-# #     print(f"symbol.{i} = symbol_splitted_data[{index}]")
+from pytse.constants import BASE_URL,CLIENT_TYPE_URL
 
 class SymbolData:
     def __init__(self):
@@ -55,11 +23,14 @@ class SymbolData:
 
 
 class PyTse:
-    def __init__(self, read_symbol_data=True):
+    def __init__(self, read_symbol_data=True,read_client_type=False):
         super().__init__()
         self.__symbols_data = {}
+        self.__symbols_data_by_id = {}
         if(read_symbol_data):
             self.read_symbols()
+            if(read_client_type):
+                self.read_client_type()
 
     @property
     def symbols_data(self):
@@ -109,11 +80,11 @@ class PyTse:
         for item in best_limit:
             pos = int(item[1])
             symbol_data["zo"+item[1]] = item[2]
-            symbol_data["zd"+item[1]]: item[3]
-            symbol_data["pd"+item[1]]: item[4]
-            symbol_data["po"+item[1]]: item[5]
-            symbol_data["qd"+item[1]]: item[6]
-            symbol_data["qo"+item[1]]: item[7]
+            symbol_data["zd"+item[1]] = item[3]
+            symbol_data["pd"+item[1]] = item[4]
+            symbol_data["po"+item[1]] = item[5]
+            symbol_data["qd"+item[1]] = item[6]
+            symbol_data["qo"+item[1]] = item[7]
             best_limit_data.insert(pos, {"zo": item[2],
                                          "zd": item[3],
                                          "pd": item[4],
@@ -131,11 +102,28 @@ class PyTse:
                 bestLimit[best_limits_splitted[0]] = d
             d.append(best_limits_splitted)
         return bestLimit
-    def __get_data_from_server(self):
-        return rq.get(
-            "http://www.tsetmc.com/tsev2/data/MarketWatchInit.aspx?h=0&r=0").text
+    def __get_data_from_server(self,url):
+        return rq.get(url).text
+        
+    def read_client_type(self):
+        client_type_body=self.__get_data_from_server(CLIENT_TYPE_URL)
+        client_type_cp=client_type_body.split(";")
+        for cols in [x.split(",") for x in client_type_cp]:
+            if cols[0] in self.__symbols_data_by_id:
+                self.__symbols_data_by_id[cols[0]].ct={
+                    "Buy_CountI": int(cols[1]),
+                    "Buy_CountN": int(cols[2]),
+                    "Buy_I_Volume": int(cols[3]),
+                    "Buy_N_Volume": int(cols[4]),
+                    "Sell_CountI": int(cols[5]),
+                    "Sell_CountN": int(cols[6]),
+                    "Sell_I_Volume": int(cols[7]),
+                    "Sell_N_Volume": int(cols[8])
+                }
+                
+        
     def read_symbols(self):
-        page_body = self.__get_data_from_server()
+        page_body = self.__get_data_from_server(BASE_URL)
         page_components = page_body.split("@")
         first_part, second_part, symbols_data, other_symbols_data, *other = page_components
         symbols_splitted = symbols_data.split(";")
@@ -145,3 +133,5 @@ class PyTse:
             if(symbol.inscode in bestLimit):
                 self.__merge_symbol_data(symbol, bestLimit[symbol.inscode])
             self.__symbols_data[symbol.iid] = symbol
+            self.__symbols_data_by_id[symbol.inscode] = symbol
+        

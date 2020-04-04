@@ -1,5 +1,13 @@
 دریافت اطلاعات سایت
 http://www.tsetmc.com
+بروز رسانی اطلاعات نماد
+```python
+pytse.read_symbols()
+```
+بروز رسانی اطلاعات حقیقی حقوقی
+```python
+pytse.read_client_type()
+```
 
 ```
 pip install pytse
@@ -13,7 +21,7 @@ from pytse.pytse import PyTse,SymbolData
 
 
 if(__name__=="__main__"):
-    pytse=PyTse()    
+    pytse=PyTse()#read_symbol_data=True,read_client_type=False
     symbols=pytse.symbols_data
     symbol=symbols["IRO1MKBT0001"] 
     print(symbol.l30)
@@ -22,6 +30,10 @@ if(__name__=="__main__"):
 You can refresh data by calling read_symbols
 ```python
 pytse.read_symbols()
+```
+Read Client Type 
+```python
+pytse.read_client_type()
 ```
 |||
 |--- |--- |
@@ -67,3 +79,11 @@ pytse.read_symbols()
 |(qo3)|حجم فروش- سطر سوم|
 |(bvol)|حجم مبنا|
 |(cs)|گروه صنعت|
+|ct.Buy_CountI|تعداد خریدار حقیقی|
+|ct.Buy_CountN|تعداد خریدار حقوقی|
+|ct.Buy_I_Volume|حجم خرید حقیقی|
+|ct.Buy_N_Volume|حجم خرید حقوقی|
+|ct.Sell_CountI|تعداد فروشنده حقیقی|
+|ct.Sell_CountN|تعداد فروشنده حقوقی|
+|ct.Sell_I_Volume|حجم فروش حقیقی|
+|ct.Sell_N_Volume|حجم فروش حقوقی|

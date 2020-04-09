@@ -11,6 +11,8 @@ pytse.read_symbols()
 pytse.read_client_type()
 ```
 پر شدن مقادیر میانگین حجم ماه و سهام شناور
+
+
 بر روی آبجکت نماد باید فراخوانی شود مانند مثال پایین
 ```python
 fill_data()

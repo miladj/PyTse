@@ -1,9 +1,20 @@
 import requests as rq
+import re
 from pytse.constants import BASE_URL,CLIENT_TYPE_URL
 
 class SymbolData:
+    __regex = re.compile(r"(QTotTran5JAvg\=\'(?P<QTotTran5JAvg>\d+)\')|(KAjCapValCpsIdx\=\'(?P<KAjCapValCpsIdx>\d+)\')")    
     def __init__(self):
         super().__init__()
+    def fill_data(self):        
+        symbol_page_raw=rq.get("http://www.tsetmc.com/loader.aspx?ParTree=151311&i={inscode}".format(inscode=self.inscode)).text        
+        matches = SymbolData.__regex.finditer(symbol_page_raw)
+        for match in matches:
+            groups=match.groupdict()
+            for key in groups:
+                value=groups[key]
+                if value:
+                    self[key]=value
 
     def __setattr__(self, name, value):
         return super().__setattr__(name, value)
@@ -16,10 +27,11 @@ class SymbolData:
 
     def get(self, name, default=None):
         return getattr(self, name, default)
-
-    def __str__(self):
+    def toJSON(self):
         import json
-        return json.dumps(self.__dict__)
+        return json.dumps(self.__dict__,default=lambda x: x.__dict__)
+    def __str__(self):
+        return self.toJSON()
 
 
 class PyTse:
@@ -110,16 +122,15 @@ class PyTse:
         client_type_cp=client_type_body.split(";")
         for cols in [x.split(",") for x in client_type_cp]:
             if cols[0] in self.__symbols_data_by_id:
-                self.__symbols_data_by_id[cols[0]].ct={
-                    "Buy_CountI": int(cols[1]),
-                    "Buy_CountN": int(cols[2]),
-                    "Buy_I_Volume": int(cols[3]),
-                    "Buy_N_Volume": int(cols[4]),
-                    "Sell_CountI": int(cols[5]),
-                    "Sell_CountN": int(cols[6]),
-                    "Sell_I_Volume": int(cols[7]),
-                    "Sell_N_Volume": int(cols[8])
-                }
+                self.__symbols_data_by_id[cols[0]].ct=SymbolData()
+                self.__symbols_data_by_id[cols[0]].ct["Buy_CountI"] = int(cols[1])
+                self.__symbols_data_by_id[cols[0]].ct["Buy_CountN"] = int(cols[2])
+                self.__symbols_data_by_id[cols[0]].ct["Buy_I_Volume"] = int(cols[3])
+                self.__symbols_data_by_id[cols[0]].ct["Buy_N_Volume"] = int(cols[4])
+                self.__symbols_data_by_id[cols[0]].ct["Sell_CountI"] = int(cols[5])
+                self.__symbols_data_by_id[cols[0]].ct["Sell_CountN"] = int(cols[6])
+                self.__symbols_data_by_id[cols[0]].ct["Sell_I_Volume"] = int(cols[7])
+                self.__symbols_data_by_id[cols[0]].ct["Sell_N_Volume"] = int(cols[8])
                 
         
     def read_symbols(self):

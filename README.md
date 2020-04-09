@@ -11,8 +11,9 @@ pytse.read_symbols()
 pytse.read_client_type()
 ```
 پر شدن مقادیر میانگین حجم ماه و سهام شناور
+بر روی آبجکت نماد باید فراخوانی شود مانند مثال پایین
 ```python
-pytse.fill_data()
+fill_data()
 ```
 
 
@@ -31,9 +32,9 @@ from pytse.pytse import PyTse,SymbolData
 
 if(__name__=="__main__"):
     pytse=PyTse()#read_symbol_data=True,read_client_type=False
+    pytse.read_client_type() # در صورت نیاز به اطلاعات حقیقی
     symbols=pytse.symbols_data
     symbol=symbols["IRO1MKBT0001"] 
-    symbol.read_client_type() # در صورت نیاز به اطلاعات حقیقی
     symbol.fill_data() #درصورت نیاز به اطلاعات "میانگین حجم ماه "و "سهام شناور" فرخوانی شود
     print(symbol)
 

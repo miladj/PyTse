@@ -7,7 +7,7 @@ class SymbolData:
     def __init__(self):
         super().__init__()
     def fill_data(self):        
-        symbol_page_raw=rq.get("http://www.tsetmc.com/loader.aspx?ParTree=151311&i={inscode}".format(inscode=self.inscode)).text        
+        symbol_page_raw=rq.get("http://www.tsetmc.com/loader.aspx?ParTree=151311&i={inscode}".format(inscode=self.inscode), timeout=(3, 20)).text        
         matches = SymbolData.__regex.finditer(symbol_page_raw)
         for match in matches:
             groups=match.groupdict()
@@ -115,7 +115,7 @@ class PyTse:
             d.append(best_limits_splitted)
         return bestLimit
     def __get_data_from_server(self,url):
-        return rq.get(url).text
+        return rq.get(url, timeout=(3, 20)).text
         
     def read_client_type(self):
         client_type_body=self.__get_data_from_server(CLIENT_TYPE_URL)

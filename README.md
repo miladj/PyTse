@@ -33,6 +33,7 @@ from pytse.pytse import PyTse,SymbolData
 
 
 if(__name__=="__main__"):
+    PyTse.request_timeout = 20#changing timeout default=30 !apply to all requests
     pytse=PyTse()#read_symbol_data=True,read_client_type=False
     pytse.read_client_type() # در صورت نیاز به اطلاعات حقیقی
     symbols=pytse.symbols_data

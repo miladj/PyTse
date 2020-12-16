@@ -1,20 +1,28 @@
 import requests as rq
 import re
-from pytse.constants import BASE_URL,CLIENT_TYPE_URL
+from pytse.constants import BASE_URL, CLIENT_TYPE_URL, SYMBOL_PAGE_URL
+
 
 class SymbolData:
-    __regex = re.compile(r"(QTotTran5JAvg\=\'(?P<QTotTran5JAvg>\d+)\')|(KAjCapValCpsIdx\=\'(?P<KAjCapValCpsIdx>\d+)\')")    
+    __regex = re.compile(
+        r"(QTotTran5JAvg\=\'(?P<QTotTran5JAvg>\d+)\')|(KAjCapValCpsIdx\=\'(?P<KAjCapValCpsIdx>\d+)\')")
+
     def __init__(self):
         super().__init__()
-    def fill_data(self):        
-        symbol_page_raw=rq.get("http://www.tsetmc.com/loader.aspx?ParTree=151311&i={inscode}".format(inscode=self.inscode)).text        
+
+    def fill_data(self):
+        if(not "inscode" in self.__dict__):
+            raise Exception(
+                "this method is not allowed on object without inscode attribute")
+        symbol_page_raw = rq.get(
+            SYMBOL_PAGE_URL.format(inscode=self.inscode), timeout=PyTse.request_timeout).text
         matches = SymbolData.__regex.finditer(symbol_page_raw)
         for match in matches:
-            groups=match.groupdict()
+            groups = match.groupdict()
             for key in groups:
-                value=groups[key]
+                value = groups[key]
                 if value:
-                    self[key]=value
+                    self[key] = value
 
     def __setattr__(self, name, value):
         return super().__setattr__(name, value)
@@ -27,15 +35,19 @@ class SymbolData:
 
     def get(self, name, default=None):
         return getattr(self, name, default)
+
     def toJSON(self):
         import json
-        return json.dumps(self.__dict__,default=lambda x: x.__dict__)
+        return json.dumps(self.__dict__, default=lambda x: x.__dict__)
+
     def __str__(self):
         return self.toJSON()
 
 
 class PyTse:
-    def __init__(self, read_symbol_data=True,read_client_type=False):
+    request_timeout = 30
+
+    def __init__(self, read_symbol_data=True, read_client_type=False):
         super().__init__()
         self.__symbols_data = {}
         self.__symbols_data_by_id = {}
@@ -114,25 +126,35 @@ class PyTse:
                 bestLimit[best_limits_splitted[0]] = d
             d.append(best_limits_splitted)
         return bestLimit
-    def __get_data_from_server(self,url):
-        return rq.get(url).text
-        
+
+    def __get_data_from_server(self, url):
+        return rq.get(url, timeout=PyTse.request_timeout).text
+
     def read_client_type(self):
-        client_type_body=self.__get_data_from_server(CLIENT_TYPE_URL)
-        client_type_cp=client_type_body.split(";")
+        client_type_body = self.__get_data_from_server(CLIENT_TYPE_URL)
+        if(client_type_body == ""):
+            raise Exception("Error in reading client type 'Empty Body'")
+        client_type_cp = client_type_body.split(";")
         for cols in [x.split(",") for x in client_type_cp]:
             if cols[0] in self.__symbols_data_by_id:
-                self.__symbols_data_by_id[cols[0]].ct=SymbolData()
-                self.__symbols_data_by_id[cols[0]].ct["Buy_CountI"] = int(cols[1])
-                self.__symbols_data_by_id[cols[0]].ct["Buy_CountN"] = int(cols[2])
-                self.__symbols_data_by_id[cols[0]].ct["Buy_I_Volume"] = int(cols[3])
-                self.__symbols_data_by_id[cols[0]].ct["Buy_N_Volume"] = int(cols[4])
-                self.__symbols_data_by_id[cols[0]].ct["Sell_CountI"] = int(cols[5])
-                self.__symbols_data_by_id[cols[0]].ct["Sell_CountN"] = int(cols[6])
-                self.__symbols_data_by_id[cols[0]].ct["Sell_I_Volume"] = int(cols[7])
-                self.__symbols_data_by_id[cols[0]].ct["Sell_N_Volume"] = int(cols[8])
-                
-        
+                self.__symbols_data_by_id[cols[0]].ct = SymbolData()
+                self.__symbols_data_by_id[cols[0]
+                                          ].ct["Buy_CountI"] = int(cols[1])
+                self.__symbols_data_by_id[cols[0]
+                                          ].ct["Buy_CountN"] = int(cols[2])
+                self.__symbols_data_by_id[cols[0]
+                                          ].ct["Buy_I_Volume"] = int(cols[3])
+                self.__symbols_data_by_id[cols[0]
+                                          ].ct["Buy_N_Volume"] = int(cols[4])
+                self.__symbols_data_by_id[cols[0]
+                                          ].ct["Sell_CountI"] = int(cols[5])
+                self.__symbols_data_by_id[cols[0]
+                                          ].ct["Sell_CountN"] = int(cols[6])
+                self.__symbols_data_by_id[cols[0]
+                                          ].ct["Sell_I_Volume"] = int(cols[7])
+                self.__symbols_data_by_id[cols[0]
+                                          ].ct["Sell_N_Volume"] = int(cols[8])
+
     def read_symbols(self):
         page_body = self.__get_data_from_server(BASE_URL)
         page_components = page_body.split("@")
@@ -145,4 +167,3 @@ class PyTse:
                 self.__merge_symbol_data(symbol, bestLimit[symbol.inscode])
             self.__symbols_data[symbol.iid] = symbol
             self.__symbols_data_by_id[symbol.inscode] = symbol
-        

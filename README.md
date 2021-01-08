@@ -19,6 +19,11 @@ fill_data()
 ```
 
 
+دریافت تاریخچه اطلاعات معاملاتی نماد(اطلاعات در خروجی متد قابل دریافت است)
+```python
+get_symbol_history()
+```
+
 
 
 ```
@@ -39,7 +44,12 @@ if(__name__=="__main__"):
     symbols=pytse.symbols_data
     symbol=symbols["IRO1MKBT0001"] 
     symbol.fill_data() #درصورت نیاز به اطلاعات "میانگین حجم ماه "و "سهام شناور" فرخوانی شود
+    symbol_history_data=symbol.get_symbol_history()
+    print(symbol_history_data["20210106"])
     print(symbol)
+    print(symbol.pl)
+    print(symbol.ct.Buy_CountI) #fill_data()
+    print(symbol["ct"]["Buy_CountI"]) #fill_data()
 
 ```
 You can refresh data by calling read_symbols

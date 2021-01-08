@@ -1,6 +1,6 @@
 import requests as rq
 import re
-from pytse.constants import BASE_URL, CLIENT_TYPE_URL, SYMBOL_PAGE_URL
+from pytse.constants import BASE_URL, CLIENT_TYPE_URL, SYMBOL_PAGE_URL, SYMBOL_HISTORY_URL
 
 
 class SymbolData:
@@ -11,7 +11,7 @@ class SymbolData:
         super().__init__()
 
     def fill_data(self):
-        if(not "inscode" in self.__dict__):
+        if not "inscode" in self.__dict__:
             raise Exception(
                 "this method is not allowed on object without inscode attribute")
         symbol_page_raw = rq.get(
@@ -23,6 +23,23 @@ class SymbolData:
                 value = groups[key]
                 if value:
                     self[key] = value
+
+    def get_symbol_history(self, use_cache=True):
+        if not "inscode" in self.__dict__:
+            raise Exception(
+                "this method is not allowed on object without inscode attribute")
+        if use_cache and "symbol_history" in self.__dict__:
+            return self["symbol_history"]
+        symbol_history_raw = rq.get(
+            SYMBOL_HISTORY_URL.format(inscode=self.inscode), timeout=PyTse.request_timeout).text
+        data = filter(lambda x: len(x) > 11, map(lambda row: row.split(","), symbol_history_raw.split("\r\n")[1:]))
+        parsed_data = dict(
+            map(lambda x: (x[1],{"Date": x[1], "FIRST": float(x[2]), "HIGH": float(x[3]), "LOW": float(x[4]), "CLOSE": float(x[5]), "VALUE": float(x[6]),
+                           "VOL": float(x[7]),
+                           "OPENINT": float(x[8]), "PER": x[9], "OPEN": float(x[10]), "LAST": float(x[11])}),
+                data))
+        self["symbol_history"] = parsed_data
+        return parsed_data
 
     def __setattr__(self, name, value):
         return super().__setattr__(name, value)
@@ -51,14 +68,18 @@ class PyTse:
         super().__init__()
         self.__symbols_data = {}
         self.__symbols_data_by_id = {}
-        if(read_symbol_data):
+        if (read_symbol_data):
             self.read_symbols()
-            if(read_client_type):
+            if (read_client_type):
                 self.read_client_type()
 
     @property
     def symbols_data(self):
         return self.__symbols_data
+
+    @property
+    def symbols_data_by_id(self):
+        return self.__symbols_data_by_id
 
     def __parse_symbol_data(self, symbol_raw_data):
         symbol_splitted_data = symbol_raw_data.split(",")
@@ -88,27 +109,27 @@ class PyTse:
         symbol.z = symbol_splitted_data[21]
         symbol.yval = symbol_splitted_data[22]
 
-        symbol.pcc = symbol.pc-symbol.py
-        symbol.pcp = round(100*symbol.pcc/symbol.py, 2)
+        symbol.pcc = symbol.pc - symbol.py
+        symbol.pcp = round(100 * symbol.pcc / symbol.py, 2)
         symbol.plc = 0 if symbol.tno == 0 else int(symbol.pl) - symbol.py
         symbol.plp = 0 if symbol.tno == 0 else round(
-            100*symbol.plc / symbol.py, 2)
+            100 * symbol.plc / symbol.py, 2)
         symbol.pe = "" if not symbol.eps else round(
-            100*symbol.pc / symbol.eps, 2)
+            100 * symbol.pc / symbol.eps, 2)
         return symbol
 
     def __merge_symbol_data(self, symbol_data, best_limit):
-        if(not hasattr(symbol_data, "best_limit")):
+        if (not hasattr(symbol_data, "best_limit")):
             symbol_data["best_limit"] = []
         best_limit_data = symbol_data.best_limit
         for item in best_limit:
             pos = int(item[1])
-            symbol_data["zo"+item[1]] = item[2]
-            symbol_data["zd"+item[1]] = item[3]
-            symbol_data["pd"+item[1]] = item[4]
-            symbol_data["po"+item[1]] = item[5]
-            symbol_data["qd"+item[1]] = item[6]
-            symbol_data["qo"+item[1]] = item[7]
+            symbol_data["zo" + item[1]] = item[2]
+            symbol_data["zd" + item[1]] = item[3]
+            symbol_data["pd" + item[1]] = item[4]
+            symbol_data["po" + item[1]] = item[5]
+            symbol_data["qd" + item[1]] = item[6]
+            symbol_data["qo" + item[1]] = item[7]
             best_limit_data.insert(pos, {"zo": item[2],
                                          "zd": item[3],
                                          "pd": item[4],
@@ -121,7 +142,7 @@ class PyTse:
         for item in best_limit_raw_data.split(";"):
             best_limits_splitted = item.split(",")
             d = bestLimit.get(best_limits_splitted[0])
-            if(d == None):
+            if (d == None):
                 d = []
                 bestLimit[best_limits_splitted[0]] = d
             d.append(best_limits_splitted)
@@ -132,28 +153,28 @@ class PyTse:
 
     def read_client_type(self):
         client_type_body = self.__get_data_from_server(CLIENT_TYPE_URL)
-        if(client_type_body == ""):
+        if (client_type_body == ""):
             raise Exception("Error in reading client type 'Empty Body'")
         client_type_cp = client_type_body.split(";")
         for cols in [x.split(",") for x in client_type_cp]:
             if cols[0] in self.__symbols_data_by_id:
                 self.__symbols_data_by_id[cols[0]].ct = SymbolData()
                 self.__symbols_data_by_id[cols[0]
-                                          ].ct["Buy_CountI"] = int(cols[1])
+                ].ct["Buy_CountI"] = int(cols[1])
                 self.__symbols_data_by_id[cols[0]
-                                          ].ct["Buy_CountN"] = int(cols[2])
+                ].ct["Buy_CountN"] = int(cols[2])
                 self.__symbols_data_by_id[cols[0]
-                                          ].ct["Buy_I_Volume"] = int(cols[3])
+                ].ct["Buy_I_Volume"] = int(cols[3])
                 self.__symbols_data_by_id[cols[0]
-                                          ].ct["Buy_N_Volume"] = int(cols[4])
+                ].ct["Buy_N_Volume"] = int(cols[4])
                 self.__symbols_data_by_id[cols[0]
-                                          ].ct["Sell_CountI"] = int(cols[5])
+                ].ct["Sell_CountI"] = int(cols[5])
                 self.__symbols_data_by_id[cols[0]
-                                          ].ct["Sell_CountN"] = int(cols[6])
+                ].ct["Sell_CountN"] = int(cols[6])
                 self.__symbols_data_by_id[cols[0]
-                                          ].ct["Sell_I_Volume"] = int(cols[7])
+                ].ct["Sell_I_Volume"] = int(cols[7])
                 self.__symbols_data_by_id[cols[0]
-                                          ].ct["Sell_N_Volume"] = int(cols[8])
+                ].ct["Sell_N_Volume"] = int(cols[8])
 
     def read_symbols(self):
         page_body = self.__get_data_from_server(BASE_URL)
@@ -163,7 +184,7 @@ class PyTse:
         bestLimit = self.__read_best_limits(other_symbols_data)
         for symbol_raw_data in symbols_splitted:
             symbol = self.__parse_symbol_data(symbol_raw_data)
-            if(symbol.inscode in bestLimit):
+            if (symbol.inscode in bestLimit):
                 self.__merge_symbol_data(symbol, bestLimit[symbol.inscode])
             self.__symbols_data[symbol.iid] = symbol
             self.__symbols_data_by_id[symbol.inscode] = symbol

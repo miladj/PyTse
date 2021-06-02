@@ -5,7 +5,7 @@ from pytse.constants import BASE_URL, CLIENT_TYPE_URL, SYMBOL_PAGE_URL, SYMBOL_H
 
 class SymbolData:
     __regex = re.compile(
-        r"(QTotTran5JAvg\=\'(?P<QTotTran5JAvg>\d+)\')|(KAjCapValCpsIdx\=\'(?P<KAjCapValCpsIdx>\d+)\')")
+        r"(QTotTran5JAvg\=\'(?P<QTotTran5JAvg>\d+)\')|(KAjCapValCpsIdx\=\'(?P<KAjCapValCpsIdx>\d+)\')|(SectorPE\=\'(?P<SectorPE>\d+.\d+)\')")
 
     def __init__(self):
         super().__init__()
@@ -116,7 +116,7 @@ class PyTse:
         symbol.plp = 0 if symbol.tno == 0 else round(
             100 * symbol.plc / symbol.py, 2)
         symbol.pe = "" if not symbol.eps else round(symbol.pc / symbol.eps, 2)
-        symbol.mv = symbol.z * symbol.pc
+        symbol.mv = int(symbol.z) * symbol.pc
         return symbol
 
     def __merge_symbol_data(self, symbol_data, best_limit):

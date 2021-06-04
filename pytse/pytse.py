@@ -5,7 +5,7 @@ from pytse.constants import BASE_URL, CLIENT_TYPE_URL, SYMBOL_PAGE_URL, SYMBOL_H
 
 class SymbolData:
     __regex = re.compile(
-        r"(QTotTran5JAvg\=\'(?P<QTotTran5JAvg>\d+)\')|(KAjCapValCpsIdx\=\'(?P<KAjCapValCpsIdx>\d+)\')")
+        r"(QTotTran5JAvg\=\'(?P<QTotTran5JAvg>\d+)\')|(KAjCapValCpsIdx\=\'(?P<KAjCapValCpsIdx>\d+)\')|(SectorPE\=\'(?P<SectorPE>\d+.\d+)\')")
 
     def __init__(self):
         super().__init__()
@@ -32,11 +32,12 @@ class SymbolData:
             return self["symbol_history"]
         symbol_history_raw = rq.get(
             SYMBOL_HISTORY_URL.format(inscode=self.inscode), timeout=PyTse.request_timeout).text
-        data = filter(lambda x: len(x) > 11, map(lambda row: row.split(","), symbol_history_raw.split("\r\n")[1:]))
+        data = filter(lambda x: len(x) > 11, map(
+            lambda row: row.split(","), symbol_history_raw.split("\r\n")[1:]))
         parsed_data = dict(
-            map(lambda x: (x[1],{"Date": x[1], "FIRST": float(x[2]), "HIGH": float(x[3]), "LOW": float(x[4]), "CLOSE": float(x[5]), "VALUE": float(x[6]),
+            map(lambda x: (x[1], {"Date": x[1], "FIRST": float(x[2]), "HIGH": float(x[3]), "LOW": float(x[4]), "CLOSE": float(x[5]), "VALUE": float(x[6]),
                            "VOL": float(x[7]),
-                           "OPENINT": float(x[8]), "PER": x[9], "OPEN": float(x[10]), "LAST": float(x[11])}),
+                                  "OPENINT": float(x[8]), "PER": x[9], "OPEN": float(x[10]), "LAST": float(x[11])}),
                 data))
         self["symbol_history"] = parsed_data
         return parsed_data
@@ -114,8 +115,8 @@ class PyTse:
         symbol.plc = 0 if symbol.tno == 0 else int(symbol.pl) - symbol.py
         symbol.plp = 0 if symbol.tno == 0 else round(
             100 * symbol.plc / symbol.py, 2)
-        symbol.pe = "" if not symbol.eps else round(
-            100 * symbol.pc / symbol.eps, 2)
+        symbol.pe = "" if not symbol.eps else round(symbol.pc / symbol.eps, 2)
+        symbol.mv = int(symbol.z) * symbol.pc
         return symbol
 
     def __merge_symbol_data(self, symbol_data, best_limit):
@@ -160,21 +161,21 @@ class PyTse:
             if cols[0] in self.__symbols_data_by_id:
                 self.__symbols_data_by_id[cols[0]].ct = SymbolData()
                 self.__symbols_data_by_id[cols[0]
-                ].ct["Buy_CountI"] = int(cols[1])
+                                          ].ct["Buy_CountI"] = int(cols[1])
                 self.__symbols_data_by_id[cols[0]
-                ].ct["Buy_CountN"] = int(cols[2])
+                                          ].ct["Buy_CountN"] = int(cols[2])
                 self.__symbols_data_by_id[cols[0]
-                ].ct["Buy_I_Volume"] = int(cols[3])
+                                          ].ct["Buy_I_Volume"] = int(cols[3])
                 self.__symbols_data_by_id[cols[0]
-                ].ct["Buy_N_Volume"] = int(cols[4])
+                                          ].ct["Buy_N_Volume"] = int(cols[4])
                 self.__symbols_data_by_id[cols[0]
-                ].ct["Sell_CountI"] = int(cols[5])
+                                          ].ct["Sell_CountI"] = int(cols[5])
                 self.__symbols_data_by_id[cols[0]
-                ].ct["Sell_CountN"] = int(cols[6])
+                                          ].ct["Sell_CountN"] = int(cols[6])
                 self.__symbols_data_by_id[cols[0]
-                ].ct["Sell_I_Volume"] = int(cols[7])
+                                          ].ct["Sell_I_Volume"] = int(cols[7])
                 self.__symbols_data_by_id[cols[0]
-                ].ct["Sell_N_Volume"] = int(cols[8])
+                                          ].ct["Sell_N_Volume"] = int(cols[8])
 
     def read_symbols(self):
         page_body = self.__get_data_from_server(BASE_URL)

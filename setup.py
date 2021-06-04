@@ -3,7 +3,7 @@ from pathlib import Path
 setuptools.setup(
     name="pytse",
     author="Milad Jahromi",
-    version="1.6.0",
+    version="1.6.1",
     long_description=Path("README.md").read_text(),
     long_description_content_type='text/markdown',
     description="A small web crawler for tsetmc.com",

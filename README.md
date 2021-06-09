@@ -50,6 +50,8 @@ if(__name__=="__main__"):
     print(symbol.pl)
     print(symbol.ct.Buy_CountI) #fill_data()
     print(symbol["ct"]["Buy_CountI"]) #fill_data()
+    print(pytse.symbols_data_by_id["44891482026867833"])#دریافت اطلاعات نماد با isincode
+    print(pytse.symbols_data_by_symbol["خساپا"])#دریافت اطلاعات با نماد Ver 1.6.2
 
 ```
 

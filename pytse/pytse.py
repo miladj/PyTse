@@ -69,6 +69,7 @@ class PyTse:
         super().__init__()
         self.__symbols_data = {}
         self.__symbols_data_by_id = {}
+        self.__symbols_data_by_symbol = {}
         if (read_symbol_data):
             self.read_symbols()
             if (read_client_type):
@@ -81,6 +82,10 @@ class PyTse:
     @property
     def symbols_data_by_id(self):
         return self.__symbols_data_by_id
+
+    @property
+    def symbols_data_by_symbol(self):
+        return self.__symbols_data_by_symbol
 
     def __parse_symbol_data(self, symbol_raw_data):
         symbol_splitted_data = symbol_raw_data.split(",")
@@ -189,3 +194,4 @@ class PyTse:
                 self.__merge_symbol_data(symbol, bestLimit[symbol.inscode])
             self.__symbols_data[symbol.iid] = symbol
             self.__symbols_data_by_id[symbol.inscode] = symbol
+            self.__symbols_data_by_symbol[symbol.l18] = symbol

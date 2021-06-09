@@ -14,3 +14,5 @@ if(__name__=="__main__"):
     print(symbol.pl)
     print(symbol.ct.Buy_CountI) #fill_data()
     print(symbol["ct"]["Buy_CountI"]) #fill_data(
+    print(pytse.symbols_data_by_symbol["خساپا"])
+    print(pytse.symbols_data_by_id["44891482026867833"])
